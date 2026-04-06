@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<!-- saved from url=(0057)file:///Users/fredericsanders/Downloads/domain-model.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Memoir — Domain Model</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:wght@400;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f0e0c;
+    color: #e8e2d9;
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 40px 20px;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 400;
+    color: #e8e2d9;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 0.72rem;
+    color: #6b6560;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 48px;
+  }
+
+  .diagram {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* SVG connector layer */
+  .connectors {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .entity {
+    position: relative;
+    z-index: 1;
+    background: #181714;
+    border: 1px solid #2a2825;
+    padding: 20px 22px;
+    margin: 12px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .entity:hover {
+    border-color: #c9a96e;
+    transition: border-color 0.2s ease;
+  }
+
+  .entity-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #c9a96e;
+    letter-spacing: 0.02em;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a2825;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .entity-name .icon {
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+
+  .field {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 4px 0;
+    font-size: 0.7rem;
+    border-bottom: 1px solid #1e1c1a;
+  }
+
+  .field:last-child { border-bottom: none; }
+
+  .field-name {
+    color: #b0a89e;
+    font-weight: 500;
+  }
+
+  .field-name.pk { color: #c9a96e; }
+  .field-name.fk { color: #8ab4a0; }
+
+  .field-type {
+    color: #4a4844;
+    font-size: 0.65rem;
+    font-style: italic;
+    white-space: nowrap;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.55rem;
+    padding: 1px 5px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .badge-pk { background: #2a2218; color: #c9a96e; border: 1px solid #c9a96e44; }
+  .badge-fk { background: #182220; color: #8ab4a0; border: 1px solid #8ab4a044; }
+
+  /* Grid positions */
+  .e-event    { grid-column: 2; grid-row: 1; }
+  .e-location { grid-column: 1; grid-row: 1; }
+  .e-memory   { grid-column: 2; grid-row: 2; background: #1a1916; border-color: #3a3530; }
+  .e-content  { grid-column: 1; grid-row: 2; }
+  .e-media    { grid-column: 3; grid-row: 2; }
+  .e-person   { grid-column: 1; grid-row: 3; }
+  .e-tag      { grid-column: 3; grid-row: 3; }
+  .e-junction { grid-column: 2; grid-row: 3; font-size: 0.65rem; }
+
+  .rel-label {
+    position: absolute;
+    font-size: 0.6rem;
+    color: #4a4844;
+    letter-spacing: 0.06em;
+    background: #0f0e0c;
+    padding: 1px 4px;
+    z-index: 2;
+  }
+
+  .legend {
+    max-width: 900px;
+    margin: 32px auto 0;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 0.65rem;
+    color: #4a4844;
+    padding: 0 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .note {
+    max-width: 900px;
+    margin: 24px auto 0;
+    padding: 16px 22px;
+    border-left: 2px solid #c9a96e44;
+    font-size: 0.68rem;
+    color: #5a5450;
+    line-height: 1.7;
+  }
+
+  .note strong { color: #8a8078; font-weight: 500; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .e-memory   { animation-delay: 0.1s; }
+  .e-content  { animation-delay: 0.2s; }
+  .e-media    { animation-delay: 0.25s; }
+  .e-event    { animation-delay: 0.3s; }
+  .e-location { animation-delay: 0.35s; }
+  .e-person   { animation-delay: 0.4s; }
+  .e-tag      { animation-delay: 0.45s; }
+  .e-junction { animation-delay: 0.5s; }
+
+  /* Relationship lines using CSS borders */
+  .rel-lines {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .cardinality {
+    font-size: 0.58rem;
+    color: #5a5450;
+    font-style: italic;
+  }
+
+  .section-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    color: #2a2825;
+    font-size: 1.2rem;
+  }
+
+  /* Relationship indicators inside entities */
+  .rel-indicator {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed #2a2825;
+    font-size: 0.62rem;
+    color: #4a4844;
+    line-height: 1.8;
+  }
+
+  .rel-indicator span {
+    color: #6b6560;
+  }
+
+  .arrow { color: #3a3530; margin: 0 4px; }
+</style>
+</head>
+<body>
+
+<h1>Family Memoir — Domain Model</h1>
+<p class="subtitle">Phase 1 → Phase 2 data structure · April 2026</p>
+
+<div class="diagram">
+
+  <!-- LOCATION -->
+  <div class="entity e-location">
+    <div class="entity-name"><span class="icon">📍</span> Location</div>
+    <div class="field"><span class="field-name pk">id <span class="badge badge-pk">PK</span></span><span class="field-type">uuid</span></div>
+    <div class="field"><span class="field-name">name</span><span class="field-type">text</span></div>
+    <div class="field"><span class="field-name">address</span><span class="field-type">text</span></div>
+    <div class="field"><span class="field-name">lat / lng</span><span class="field-type">float</span></div>
+    <div class="field"><span class="field-name">type</span><span class="field-type">home · park · venue…</span></div>
+    <div class="field"><span class="field-name fk">parent_location_id <span class="badge badge-fk">FK</span></span><span class="field-type">→ Location (nullable)</span></div>
+    <div class="field"><span class="field-name">date_opened</span><span class="field-type">date (nullable)</span></div>
+    <div class="field"><span class="field-name">date_closed</span><span class="field-type">date (nullable)</span></div>
+    <div class="rel-indicator">
+      <span>✦ independent</span> — no required links<br>
+      <span>↓ optionally has</span> Memories<br>
+      <span>↓ optionally has</span> Events<br>
+      <span>↓ optionally has</span> Media
+    </div>
+  </div>
+
+  <!-- EVENT -->
+  <div class="entity e-event">
+    <div class="entity-name"><span class="icon">🎄</span> Event</div>
+    <div class="field"><span class="field-name pk">id <span class="badge badge-pk">PK</span></span><span class="field-type">uuid</span></div>
+    <div class="field"><span class="field-name">name</span><span class="field-type">text</span></div>
+    <div class="field"><span class="field-name">date_start</span><span class="field-type">date</span></div>
+    <div class="field"><span class="field-name">date_end</span><span class="field-type">date</span></div>
+    <div class="field"><span class="field-name fk">location_id <span class="badge badge-fk">FK</span></span><span class="field-type">→ Location (nullable)</span></div>
+    <div class="rel-indicator">
+      <span>✦ independent</span> — no required links<br>
+      <span>↓ optionally has</span> Memories<br>
+      <span>↓ optionally has</span> Media
+    </div>
+  </div>
+
+  <!-- empty top right -->
+  <div></div>
+
+  <!-- CONTENT -->
+  <div class="entity e-content">
+    <div class="entity-name"><span class="icon">✍️</span> Content</div>
+    <div class="field"><span class="field-name pk">id <span class="badge badge-pk">PK</span></span><span class="field-type">uuid</span></div>
+    <div class="field"><span class="field-name fk">memory_id <span class="badge badge-fk">FK</span></span><span class="field-type">→ Memory</span></div>
+    <div class="field"><span class="field-name">type</span><span class="field-type">thought · quote · note…</span></div>
+    <div class="field"><span class="field-name">body</span><span class="field-type">text</span></div>
+    <div class="field"><span class="field-name">author_id</span><span class="field-type">→ Person</span></div>
+    <div class="field"><span class="field-name">created_at</span><span class="field-type">timestamp</span></div>
+    <div class="rel-indicator">
+      <span>↑ belongs to</span> Memory
+    </div>
+  </div>
+
+  <!-- MEMORY (core) -->
+  <div class="entity e-memory">
+    <div class="entity-name"><span class="icon">🧠</span> Memory</div>
+    <div class="field"><span class="field-name pk">id <span class="badge badge-pk">PK</span></span><span class="field-type">uuid</span></div>
+    <div class="field"><span class="field-name">memory_date</span><span class="field-type">date</span></div>
+    <div class="field"><span class="field-name">title</span><span class="field-type">text</span></div>
+    <div class="field"><span class="field-name fk">event_id <span class="badge badge-fk">FK</span></span><span class="field-type">→ Event</span></div>
+    <div class="field"><span class="field-name fk">location_id <span class="badge badge-fk">FK</span></span><span class="field-type">→ Location</span></div>
+    <div class="field"><span class="field-name">source</span><span class="field-type">whatsapp · website</span></div>
+    <div class="field"><span class="field-name">created_at</span><span class="field-type">timestamp</span></div>
+    <div class="rel-indicator">
+      <span>↓ has many</span> Content items<br>
+      <span>↓ has many</span> Media items<br>
+      <span>↔ many-many</span> People, Tags
+    </div>
+  </div>
+
+  <!-- MEDIA -->
+  <div class="entity e-media">
+    <div class="entity-name"><span class="icon">🖼</span> Media</div>
+    <div class="field"><span class="field-name pk">id <span class="badge badge-pk">PK</span></span><span class="field-type">uuid</span></div>
+    <div class="field"><span class="field-name fk">memory_id <span class="badge badge-fk">FK</span></span><span class="field-type">→ Memory</span></div>
+    <div class="field"><span class="field-name">type</span><span class="field-type">image · video · audio</span></div>
+    <div class="field"><span class="field-name">url</span><span class="field-type">text</span></div>
+    <div class="field"><span class="field-name">taken_at</span><span class="field-type">timestamp (EXIF)</span></div>
+    <div class="field"><span class="field-name fk">location_id <span class="badge badge-fk">FK</span></span><span class="field-type">→ Location (GPS)</span></div>
+    <div class="field"><span class="field-name">duration_s</span><span class="field-type">int (video/audio)</span></div>
+    <div class="rel-indicator">
+      <span>↑ belongs to</span> Memory (optional)
+    </div>
+  </div>
+
+  <!-- PERSON -->
+  <div class="entity e-person">
+    <div class="entity-name"><span class="icon">👤</span> Person</div>
+    <div class="field"><span class="field-name pk">id <span class="badge badge-pk">PK</span></span><span class="field-type">uuid</span></div>
+    <div class="field"><span class="field-name">name</span><span class="field-type">text</span></div>
+    <div class="field"><span class="field-name">hashtag</span><span class="field-type">text (e.g. #Daniel)</span></div>
+    <div class="field"><span class="field-name">phone</span><span class="field-type">text (Twilio sender)</span></div>
+    <div class="rel-indicator">
+      <span>✦ independent</span> — no required links<br>
+      <span>↔ optionally linked</span> Memories<br>
+      <span>↔ optionally linked</span> Locations<br>
+      <span>↔ optionally linked</span> Events
+    </div>
+  </div>
+
+  <!-- JUNCTION / TAGS -->
+  <div class="entity e-junction">
+    <div class="entity-name"><span class="icon">🔗</span> Junction Tables</div>
+    <div class="field"><span class="field-name" style="color:#8ab4a0">memory_person</span><span class="field-type">memory↔person</span></div>
+    <div class="field"><span class="field-name" style="color:#8ab4a0">memory_tag</span><span class="field-type">memory↔tag</span></div>
+    <div class="field"><span class="field-name" style="color:#8ab4a0">event_person</span><span class="field-type">event↔person</span></div>
+    <div class="field"><span class="field-name" style="color:#8ab4a0">location_person</span><span class="field-type">location↔person</span></div>
+    <div class="rel-indicator">
+      Resolves all<br>many-to-many<br>relationships
+    </div>
+  </div>
+
+  <!-- TAG -->
+  <div class="entity e-tag">
+    <div class="entity-name"><span class="icon">#</span> Tag</div>
+    <div class="field"><span class="field-name pk">id <span class="badge badge-pk">PK</span></span><span class="field-type">uuid</span></div>
+    <div class="field"><span class="field-name">label</span><span class="field-type">text (e.g. funny)</span></div>
+    <div class="field"><span class="field-name">category</span><span class="field-type">theme · mood · place…</span></div>
+    <div class="rel-indicator">
+      <span>↔ many-many</span> Memories via junction
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#c9a96e"></div> Primary Key</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8ab4a0"></div> Foreign Key</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3a3530"></div> Memory = core entity</div>
+  <div class="legend-item" style="color:#6b6560">✦ = entity exists independently — no memories required</div>
+  <div class="legend-item" style="color:#6b6560">All FK relationships are nullable unless stated otherwise</div>
+</div>
+
+<div class="note">
+  <strong>Key principle:</strong> Location, Event, and Person are all first-class independent entities — create them before any memories exist. All FK relationships on Memory are nullable. <strong>Location</strong> supports spatial nesting via <code>parent_location_id</code> (a festival stage inside a park) and temporal validity via <code>date_opened</code> / <code>date_closed</code> (a bar that closed and reopened under a new name). <strong>Phase 2 canonical layer:</strong> two additional tables (<code>canonical_location</code>, <code>canonical_event</code>) plus nullable FK columns on Location and Event will enable multi-user aggregation. Zero changes to the Phase 1 schema — purely additive.
+</div>
+
+
+
+</body></html>
