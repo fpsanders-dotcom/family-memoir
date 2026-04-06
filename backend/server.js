@@ -18,6 +18,7 @@
  */
 
 import express from 'express';
+import crypto from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import config from './config.js';
 import { parseMessage } from './lib/parseMessage.js';
