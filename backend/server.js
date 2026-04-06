@@ -43,9 +43,99 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// Health check
-app.get('/', (req, res) => {
+// Health check (machine-readable)
+app.get('/healthz', (req, res) => {
   res.json({ status: 'ok', app: 'Family Memoir App', version: '2.0.0' });
+});
+
+// Public landing page for unusual.company (and any other host pointed at this service).
+// Kept intentionally simple — single self-contained HTML page, no external assets.
+const LANDING_HTML = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unusual Company — Family Memoir</title>
+  <meta name="description" content="Unusual Company is building Family Memoir, a private space for families to collect and preserve everyday memories together over WhatsApp.">
+  <style>
+    :root {
+      --bg: #faf8f4;
+      --ink: #1c1a17;
+      --muted: #6b6660;
+      --accent: #c2410c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    main {
+      max-width: 38rem;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 3rem;
+    }
+    .brand {
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+      line-height: 1.2;
+      margin: 0 0 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 2.5rem 0 0.75rem;
+      letter-spacing: -0.005em;
+    }
+    p { margin: 0 0 1rem; color: #2a2723; }
+    p.muted { color: var(--muted); }
+    a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    a:hover { text-decoration-thickness: 2px; }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #eae5dc;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">Unusual Company</div>
+    <h1>We&rsquo;re building Family Memoir.</h1>
+    <p>Family Memoir is a quiet, private space for families to collect everyday memories together — a story about a grandparent, a photo from a trip, a recipe nobody wrote down. You send memories the way you already talk: over WhatsApp.</p>
+    <p>No feed. No algorithm. No audience. Just your family, and the things worth remembering.</p>
+
+    <h2>About Unusual Company</h2>
+    <p>Unusual Company is a small studio building software for families and the people who care about them. Family Memoir is our first product.</p>
+
+    <h2>Get in touch</h2>
+    <p>We&rsquo;d love to hear from you. Email <a href="mailto:hello@unusual.company">hello@unusual.company</a>.</p>
+
+    <footer>
+      &copy; Unusual Company. Family Memoir is currently in private testing.
+    </footer>
+  </main>
+</body>
+</html>`;
+
+app.get('/', (req, res) => {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(LANDING_HTML);
 });
 
 // --- Main Webhook Endpoint ---

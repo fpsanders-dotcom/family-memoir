@@ -30,7 +30,7 @@ async function runTests() {
   // Test 1: Health Check
   console.log('\n[Test 1] Health check...');
   try {
-    const healthRes = await fetch(`${BASE_URL}/`);
+    const healthRes = await fetch(`${BASE_URL}/healthz`);
     const health = await healthRes.json();
     assert(health.status === 'ok', 'Health check should return ok');
     pass('Health check passed');
