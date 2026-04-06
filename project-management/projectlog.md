@@ -57,3 +57,28 @@
 - Test conversational follow-up flow live
 - Deploy webhook permanently
 - Begin migration from flat arrays to relational domain model
+
+---
+
+## 2026-04-06 (Session 3 — Permanent Deploy)
+
+### What we did
+- Deployed the webhook to Railway from the GitHub repo (auto-deploy on push to main, Node 18, region us-east4-eqdc4a)
+- Set all Supabase + Twilio env vars in Railway via Raw Editor
+- Bought/used `unusual.company` (registered at hostnet.nl) and pointed `webhook.unusual.company` at Railway via CNAME + railway-verify TXT record
+- Let's Encrypt provisioned the SSL cert via DNS-01; `https://webhook.unusual.company` is live
+- Updated the Twilio WhatsApp sandbox webhook from the old ngrok URL to `https://webhook.unusual.company/webhook`
+- First end-to-end test crashed with `ReferenceError: crypto is not defined` at `server.js:138` — Node ESM does not expose `crypto` as a global
+- Fixed by adding `import crypto from 'node:crypto'` (commit `b89d242`), pushed, Railway auto-redeployed
+- Re-tested: WhatsApp message round-tripped successfully and the bot replied
+
+### Key decisions
+- Custom domain `webhook.unusual.company` instead of the default Railway subdomain — keeps the public URL stable across project moves
+- Railway over Fly.io/Render for first deploy — fastest path from GitHub to live URL with auto-deploy on push
+- Sandbox-to-GitHub push is blocked by proxy → workflow is: Claude commits in mounted folder, Freek runs `git push` from his terminal
+
+### What's next
+- Run migration 003 in Supabase SQL Editor (pending_questions table) and test conversational follow-up flow live on the Railway deploy
+- Get Freek's wife connected to the WhatsApp sandbox
+- Begin migration from flat arrays to relational domain model
+- Decide whether to upgrade off the Twilio sandbox to a registered WhatsApp sender (sandbox membership expires every 72h)

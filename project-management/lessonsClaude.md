@@ -28,5 +28,20 @@ The `TWILIO_WHATSAPP_NUMBER` in .env must be `whatsapp:+14155238886` (the standa
 ### ngrok free tier changes URL on restart
 Every time ngrok restarts, it generates a new public URL. The Twilio webhook URL must be updated manually each time. For production, deploy to a permanent cloud host.
 
+### Node ESM does not expose `crypto` as a global
+Even though `globalThis.crypto` exists in Node 19+ for the WebCrypto API, the legacy `crypto.randomUUID()` style call we use in `server.js` is NOT a global in ESM. It crashed Railway on the first incoming WhatsApp message with `ReferenceError: crypto is not defined`. Always `import crypto from 'node:crypto'` explicitly at the top of any ESM file that uses it. CommonJS used to expose it as a global, ESM doesn't.
+
+### Railway auto-redeploys on push to main
+Railway watches the GitHub repo and rebuilds + redeploys automatically every time `main` advances. No CLI step needed for hotfixes — `git push` is the deploy command. Build typically takes ~1–2 min.
+
+### Sandbox cannot push to GitHub (proxy 403)
+Bash sandbox blocks outbound git push (HTTP 403 from proxy on CONNECT). Commits are made in-sandbox via the mounted folder, then Freek pushes from his own terminal. Workflow: Claude commits → Freek runs `git push` → Railway redeploys.
+
+### Twilio WhatsApp sandbox webhook lives under "Try it out → Send a WhatsApp message → Sandbox settings"
+The historic URL `console.twilio.com/us1/develop/sms/settings/whatsapp-sandbox` 404s. Correct path is the "Sandbox settings" tab on `console.twilio.com/us1/develop/sms/try-it-out/whatsapp-learn`.
+
+### Custom domain on Railway needs CNAME + TXT, then waits for Let's Encrypt
+For `webhook.unusual.company`: add custom domain in Railway → Railway gives a CNAME target (`*.up.railway.app`) and a `railway-verify=...` TXT record → add both at the DNS provider (hostnet.nl in our case) → Railway provisions Let's Encrypt via DNS-01 automatically. CNAMEs only work on subdomains, not apex/root.
+
 ### Supabase anon key must be hardcoded in standalone HTML
 The table-view.html runs in the browser with no build step. The Supabase anon key must be pasted directly into the JS — it can't read from .env. Remember to update it when the key changes.
