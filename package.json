@@ -11,7 +11,7 @@
     "test": "node tools/test-webhook.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "keywords": [],
   "author": "",
